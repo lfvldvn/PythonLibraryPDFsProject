@@ -9,8 +9,8 @@ ALLOWED_EXTENSIONS = {'pdf'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = 'your_secret_key'  # Alterar para uma chave secreta real
-admin_password = generate_password_hash('admin123')  # Hash para a senha 'admin123'
+app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
+admin_password = generate_password_hash('1Q@Z0OkM*')  # Hash para a senha 'admin123'
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
