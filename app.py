@@ -37,11 +37,16 @@ def upload():
 
 @app.route('/pdfs/<path:filename>')
 def download_file(filename):
-    return send_from_directory('pdfs', filename, as_attachment=True)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 @app.route('/view/<path:filename>')
 def view_pdf(filename):
-    return send_from_directory('pdfs', filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(file_path):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, mimetype='application/pdf')
+    else:
+        flash('Arquivo não encontrado.', 'error')
+        return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -63,7 +68,6 @@ def logout():
 
 @app.route('/delete/<path:filename>')
 def delete_file(filename):
-    # Verifica se o usuário está logado antes de permitir a exclusão
     if not session.get('logged_in'):
         flash('Você precisa fazer login para excluir arquivos.', 'error')
         return redirect(url_for('login'))
@@ -71,7 +75,6 @@ def delete_file(filename):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     thumbnail_path = get_thumbnail_path(filename)
 
-    # Exclui o arquivo PDF e o thumbnail, se existirem
     if os.path.exists(file_path):
         os.remove(file_path)
 
