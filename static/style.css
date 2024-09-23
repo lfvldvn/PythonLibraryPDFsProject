@@ -173,9 +173,7 @@ input[type="text"] {
     }
 
     .search-bar h1 {
-        font-size: 16px; /* Reduz o tamanho do texto */
-        margin: 0; /* Remove a margem */
-        text-align: center; /* Centraliza o texto */
+        display:none;
     }
 
     input[type="text"] {
