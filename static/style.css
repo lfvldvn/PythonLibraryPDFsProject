@@ -14,11 +14,6 @@ body {
     flex-wrap: wrap;
 }
 
-.pdf-item p {
-    position: relative;
-    bottom: 0px;
-}
-
 .pdf-item {
     width: 176px;
     margin: 10px;
@@ -126,7 +121,9 @@ input[type="text"] {
     margin: 0px 0px 0px 40px;
 }
 
-.open-button, .download-button, .delete-button {
+.open-button,
+.download-button,
+.delete-button {
     display: block;
     text-align: center;
     padding: 10px;
@@ -137,7 +134,6 @@ input[type="text"] {
     transition: background-color 0.3s ease-in-out;
 }
 
-/* Botões */
 .open-button:hover {
     background-color: #45a049;
 }
@@ -162,33 +158,49 @@ input[type="text"] {
     background-color: #FF0000;
 }
 
-/* Tema escuro */
 .dark-theme {
     background-color: #333;
     color: #fff;
 }
 
-/* Consultas de mídia para versão mobile */
+/* Estilos específicos para mobile */
 @media (max-width: 768px) {
     .search-bar {
-        width: 90%;
-        padding: 10px;
-        left: 5%;
-        top: 10px; /* Adicione um espaço acima */
+        width: 100%; /* Aumenta a largura para 100% */
+        padding: 10px 0; /* Ajusta o padding */
+        position: relative; /* Muda a posição para relativa */
+        left: 0; /* Remove o deslocamento à esquerda */
+    }
+
+    .search-bar h1 {
+        font-size: 16px; /* Reduz o tamanho do texto */
+        margin: 0; /* Remove a margem */
+        text-align: center; /* Centraliza o texto */
     }
 
     input[type="text"] {
-        width: calc(100% - 80px); /* Para ajuste no input */
-        margin: 0px 0px 0px 10px; /* Ajuste a margem */
+        width: 100%; /* Preenche 100% da largura da search bar */
+        margin-top: 10px; /* Espaço acima do input */
+        padding: 10px; /* Mantém o padding */
+    }
+
+    .pdf-container {
+        justify-content: center; /* Centraliza os thumbnails */
     }
 
     .pdf-item {
-        width: 100%; /* Muda para 100% em telas pequenas */
-        margin: 10px 0; /* Ajuste na margem */
+        width: 90%; /* Ajusta a largura dos itens para 90% */
+        max-width: 300px; /* Limita a largura máxima */
+        margin: 10px; /* Margem uniforme */
+    }
+
+    .pdf-item img {
+        width: 100%; /* Mantém a largura da imagem */
+        height: auto; /* Mantém a proporção da imagem */
     }
 
     #alt_theme {
-        top: 10px; /* Ajuste a posição do botão */
-        right: 10px; /* Ajuste a posição do botão */
+        position: relative; /* Muda a posição para relativa */
+        margin: 10px; /* Margem para espaçamento */
     }
 }
