@@ -6,7 +6,7 @@ body {
     width: 90%;
     margin: 0 auto;
     padding: 20px;
-    z-index:2;
+    z-index: 2;
 }
 
 .pdf-container {
@@ -33,10 +33,6 @@ body {
     transform: scale(1.05);
 }
 
-.pdf_img {
-    height:270;
-}
-
 .pdf-item img {
     width: 100%;
     border-radius: 8px;
@@ -44,15 +40,13 @@ body {
 }
 
 .pdf_title {
-    height:50px;
+    height: 50px;
 }
 
 .pdf-item p {
     text-align: center;
     margin-top: 10px;
 }
-
-/* Adicione esses estilos ao seu arquivo de folha de estilo */
 
 #alt_theme {
     padding: 12px 20px;
@@ -102,14 +96,13 @@ body {
     animation: pulseAnimation 0.2s ease;
 }
 
-
 .search-bar {
-    width:1100px;
-    display:flex;
+    width: 1100px;
+    display: flex;
     margin: 0 auto;
-    padding:5px 0px 5px 50px;
-    justify-content:left;
-    align-content:left;
+    padding: 5px 0px 5px 50px;
+    justify-content: left;
+    align-content: left;
     cursor: pointer;
     border: none;
     border-radius: 0 25px 25px 25px;
@@ -120,7 +113,7 @@ body {
     position: fixed;
     top: 0px;
     left: 5%;
-    z-index:1;
+    z-index: 1;
     box-shadow: 5px 8px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -144,7 +137,7 @@ input[type="text"] {
     transition: background-color 0.3s ease-in-out;
 }
 
-/* Botão de abrir */
+/* Botões */
 .open-button:hover {
     background-color: #45a049;
 }
@@ -153,31 +146,49 @@ input[type="text"] {
     background-color: #4CAF50;
 }
 
-/* Botão de download */
 .download-button:hover {
-    background-color: #007099; /* Um tom mais escuro para o efeito de hover */
+    background-color: #007099;
 }
 
 .download-button {
     background-color: #008CBA;
 }
 
-/* Botão de exclusão */
 .delete-button:hover {
-    background-color: #CC0000; /* Um tom mais escuro para o efeito de hover */
+    background-color: #CC0000;
 }
 
 .delete-button {
     background-color: #FF0000;
 }
 
-/* Adicione estilos para o tema escuro */
+/* Tema escuro */
 .dark-theme {
     background-color: #333;
     color: #fff;
 }
 
-/* Adapte os estilos conforme necessário para o tema escuro */
-.dark-theme .container {
-    /* Adapte os estilos para o tema escuro */
+/* Consultas de mídia para versão mobile */
+@media (max-width: 768px) {
+    .search-bar {
+        width: 90%;
+        padding: 10px;
+        left: 5%;
+        top: 10px; /* Adicione um espaço acima */
+    }
+
+    input[type="text"] {
+        width: calc(100% - 80px); /* Para ajuste no input */
+        margin: 0px 0px 0px 10px; /* Ajuste a margem */
+    }
+
+    .pdf-item {
+        width: 100%; /* Muda para 100% em telas pequenas */
+        margin: 10px 0; /* Ajuste na margem */
+    }
+
+    #alt_theme {
+        top: 10px; /* Ajuste a posição do botão */
+        right: 10px; /* Ajuste a posição do botão */
+    }
 }
