@@ -134,6 +134,17 @@ input[type="text"] {
     transition: background-color 0.3s ease-in-out;
 }
 
+.pdf-actions form {
+    margin: 0;
+}
+
+.pdf-actions .delete-button {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+}
+
 .open-button:hover {
     background-color: #45a049;
 }

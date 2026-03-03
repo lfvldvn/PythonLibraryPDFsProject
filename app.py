@@ -1,146 +1,166 @@
-from flask import Flask, render_template, redirect, url_for, session, flash, request, Response
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, session, flash, abort
 import os
-import requests
-import json
+import secrets
+from werkzeug.utils import secure_filename, safe_join
 from werkzeug.security import check_password_hash, generate_password_hash
-from urllib.parse import quote
+from pdf2image import convert_from_path
 
-# 🔥 BASE URLs
-PDF_BASE_URL = "https://aphilly.com/libraryProject/PDFbooks/"
-THUMBNAIL_BASE_URL = "https://aphilly.com/libraryProject/thumbnails/"
-DEFAULT_THUMB = "https://via.placeholder.com/150x220?text=PDF"
+UPLOAD_FOLDER = 'pdfs'
+ALLOWED_EXTENSIONS = {'pdf'}
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
 
-# 🔐 senha admin (gerada uma vez ao iniciar)
-admin_password_hash = generate_password_hash('1Q@Z0OkM*')
+admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
+admin_password_plain = os.environ.get('ADMIN_PASSWORD')
+if admin_password_hash:
+    ADMIN_PASSWORD_HASH = admin_password_hash
+elif admin_password_plain:
+    ADMIN_PASSWORD_HASH = generate_password_hash(admin_password_plain)
+else:
+    raise RuntimeError('Configure ADMIN_PASSWORD_HASH ou ADMIN_PASSWORD nas variaveis de ambiente.')
 
-
-# 📚 LISTA DE PDFs (JSON)
-def get_pdf_files():
-    try:
-        with open('books.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-            # segurança: garante que sempre seja lista
-            if isinstance(data, list):
-                return data
-            else:
-                print("JSON inválido (não é lista)")
-                return []
-
-    except FileNotFoundError:
-        print("books.json não encontrado")
-        return []
-
-    except json.JSONDecodeError:
-        print("Erro ao decodificar JSON")
-        return []
-
-    except Exception as e:
-        print(f"Erro inesperado: {e}")
-        return []
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# 🔗 URL DO PDF
-def get_pdf_url(filename):
-    return f"{PDF_BASE_URL}{quote(filename)}"
+def _resolve_pdf_path(filename):
+    resolved_path = safe_join(app.config['UPLOAD_FOLDER'], filename)
+    if not resolved_path:
+        abort(400)
+
+    if os.path.basename(filename) != filename:
+        abort(400)
+
+    return resolved_path
 
 
-# 🖼️ URL DO THUMB
-def get_thumbnail_url(filename):
-    name = os.path.splitext(filename)[0]
-    return f"{THUMBNAIL_BASE_URL}{quote(name)}.png"
+def _get_or_create_csrf_token():
+    token = session.get('csrf_token')
+    if not token:
+        token = secrets.token_hex(16)
+        session['csrf_token'] = token
+    return token
 
 
-# 🏠 HOME
+def _validate_csrf_token(token):
+    expected = session.get('csrf_token')
+    return bool(expected and token and secrets.compare_digest(expected, token))
+
+
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': _get_or_create_csrf_token()}
+
+def get_thumbnail_path(pdf_file):
+    return os.path.join('static/thumbnails', f"{os.path.splitext(pdf_file)[0]}.png")
+
 @app.route('/')
 def index():
     pdf_files = get_pdf_files()
+    generate_thumbnails(pdf_files)
     logged_in = session.get('logged_in', False)
+    return render_template('index.html', pdf_files=pdf_files, os=os, logged_in=logged_in)
 
-    pdfs = []
-    for pdf in pdf_files:
-        pdfs.append({
-            "name": pdf,
-            "url": get_pdf_url(pdf),
-            "thumbnail": get_thumbnail_url(pdf)
-        })
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if not session.get('logged_in'):
+        flash('Voce precisa fazer login para enviar arquivos.', 'error')
+        return redirect(url_for('login'))
 
-    return render_template(
-        'index.html',
-        pdfs=pdfs,
-        logged_in=logged_in,
-        default_thumb=DEFAULT_THUMB
-    )
+    if request.method == 'POST':
+        if not _validate_csrf_token(request.form.get('csrf_token')):
+            abort(400)
 
+        uploaded_file = request.files.get('file')
+        if not uploaded_file or not uploaded_file.filename:
+            flash('Selecione um arquivo PDF.', 'error')
+            return redirect(url_for('upload'))
 
-# 🔐 LOGIN
+        if uploaded_file and allowed_file(uploaded_file.filename):
+            filename = secure_filename(uploaded_file.filename)
+            uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            flash('Arquivo enviado com sucesso.', 'success')
+            return redirect(url_for('index'))
+        flash('Formato invalido. Envie apenas arquivos PDF.', 'error')
+    return render_template('upload.html')
+
+@app.route('/pdfs/<path:filename>')
+def download_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+
+@app.route('/view/<path:filename>')
+def view_pdf(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(file_path):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, mimetype='application/pdf')
+    else:
+        flash('Arquivo não encontrado.', 'error')
+        return redirect(url_for('index'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        password = request.form.get('password', '')
+        if not _validate_csrf_token(request.form.get('csrf_token')):
+            abort(400)
 
-        if check_password_hash(admin_password_hash, password):
+        password = request.form['password']
+        if check_password_hash(ADMIN_PASSWORD_HASH, password):
             session['logged_in'] = True
             flash('Login bem-sucedido!', 'success')
             return redirect(url_for('index'))
         else:
             flash('Senha incorreta!', 'error')
-
     return render_template('login.html')
 
-
-# 🚪 LOGOUT
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     flash('Você foi desconectado.', 'success')
     return redirect(url_for('index'))
 
-
-# 🔥 DOWNLOAD FORÇADO (STREAM)
-@app.route('/download/<path:filename>')
-def download_file(filename):
-    try:
-        pdf_url = get_pdf_url(filename)
-        r = requests.get(pdf_url, stream=True, timeout=10)
-
-        if r.status_code != 200:
-            flash("Erro ao baixar o arquivo.", "error")
-            return redirect(url_for('index'))
-
-        def generate():
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    yield chunk
-
-        return Response(
-            generate(),
-            headers={
-                "Content-Disposition": f"attachment; filename={filename}"
-            },
-            content_type='application/pdf'
-        )
-
-    except Exception as e:
-        print(f"Erro no download: {e}")
-        flash("Erro inesperado no download.", "error")
-        return redirect(url_for('index'))
-
-
-# ❌ DELETE (SIMBÓLICO)
-@app.route('/delete/<path:filename>')
+@app.route('/delete/<path:filename>', methods=['POST'])
 def delete_file(filename):
     if not session.get('logged_in'):
         flash('Você precisa fazer login para excluir arquivos.', 'error')
         return redirect(url_for('login'))
 
-    flash(f'O arquivo "{filename}" deve ser removido diretamente no servidor aphilly.', 'warning')
+    if not _validate_csrf_token(request.form.get('csrf_token')):
+        abort(400)
+
+    file_path = _resolve_pdf_path(filename)
+    thumbnail_path = get_thumbnail_path(filename)
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    if os.path.exists(thumbnail_path):
+        os.remove(thumbnail_path)
+
+    flash(f'O arquivo {filename} foi excluído com sucesso.', 'success')
     return redirect(url_for('index'))
 
+def get_pdf_files():
+    pdf_directory = 'pdfs'
+    pdf_files = [f for f in os.listdir(pdf_directory) if f.lower().endswith('.pdf')]
+    return pdf_files
 
-# 🚀 RUN
+def generate_thumbnails(pdf_files):
+    pdf_directory = 'pdfs'
+    thumbnails_directory = 'static/thumbnails'
+
+    if not os.path.exists(thumbnails_directory):
+        os.makedirs(thumbnails_directory)
+
+    for pdf_file in pdf_files:
+        pdf_path = os.path.join(pdf_directory, pdf_file)
+        thumbnail_path = get_thumbnail_path(pdf_file)
+
+        if not os.path.exists(thumbnail_path):
+            images = convert_from_path(pdf_path, first_page=0, last_page=1)
+            if images:
+                images[0].save(thumbnail_path, 'PNG')
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(debug=True)
