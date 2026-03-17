@@ -12,6 +12,7 @@ body {
 .pdf-container {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .pdf-item {
@@ -20,6 +21,11 @@ body {
     padding: 15px;
     border: 1px solid #ddd;
     border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease-in-out;
 }
@@ -32,15 +38,33 @@ body {
     width: 100%;
     border-radius: 8px;
     height: 270px;
+    object-fit: cover;
 }
 
 .pdf_title {
     height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
-.pdf-item p {
+.pdf_title p {
     text-align: center;
-    margin-top: 10px;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.3;
+
+    /* 🔥 resolve quebra de nomes grandes */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+
+    /* 💎 limita em 2 linhas */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 #alt_theme {
@@ -145,28 +169,28 @@ input[type="text"] {
     font: inherit;
 }
 
-.open-button:hover {
-    background-color: #45a049;
-}
-
 .open-button {
     background-color: #4CAF50;
 }
 
-.download-button:hover {
-    background-color: #007099;
+.open-button:hover {
+    background-color: #45a049;
 }
 
 .download-button {
     background-color: #008CBA;
 }
 
-.delete-button:hover {
-    background-color: #CC0000;
+.download-button:hover {
+    background-color: #007099;
 }
 
 .delete-button {
     background-color: #FF0000;
+}
+
+.delete-button:hover {
+    background-color: #CC0000;
 }
 
 .dark-theme {
@@ -174,42 +198,42 @@ input[type="text"] {
     color: #fff;
 }
 
-/* Estilos específicos para mobile */
+/* 📱 MOBILE */
 @media (max-width: 768px) {
     .search-bar {
-        width: 100%; /* Aumenta a largura para 100% */
-        padding: 10px 0; /* Ajusta o padding */
-        position: relative; /* Muda a posição para relativa */
-        left: 0; /* Remove o deslocamento à esquerda */
+        width: 100%;
+        padding: 10px 0;
+        position: relative;
+        left: 0;
     }
 
     .search-bar h1 {
-        display:none;
+        display: none;
     }
 
     input[type="text"] {
-        width: 100%; /* Preenche 100% da largura da search bar */
-        margin-top: 10px; /* Espaço acima do input */
-        padding: 10px; /* Mantém o padding */
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px;
     }
 
     .pdf-container {
-        justify-content: center; /* Centraliza os thumbnails */
+        justify-content: center;
     }
 
     .pdf-item {
-        width: 90%; /* Ajusta a largura dos itens para 90% */
-        max-width: 300px; /* Limita a largura máxima */
-        margin: 10px; /* Margem uniforme */
+        width: 90%;
+        max-width: 300px;
+        margin: 10px;
     }
 
     .pdf-item img {
-        width: 100%; /* Mantém a largura da imagem */
-        height: auto; /* Mantém a proporção da imagem */
+        width: 100%;
+        height: auto;
     }
 
     #alt_theme {
-        position: relative; /* Muda a posição para relativa */
-        margin: 10px; /* Margem para espaçamento */
+        position: relative;
+        margin: 10px;
     }
 }

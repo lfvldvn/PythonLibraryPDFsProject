@@ -39,8 +39,11 @@
                         onerror="this.onerror=null;this.src='{{ default_thumb }}';"
                     >
 
+                    <!-- 📘 TÍTULO FORMATADO -->
                     <div class="pdf_title">
-                        <p>{{ pdf.name }}</p>
+                        <p title="{{ pdf.name }}" data-name="{{ pdf.name }}">
+                            {{ pdf.name.replace('_', ' ').replace('.pdf', '') }}
+                        </p>
                     </div>
 
                     <div class="pdf-actions">
@@ -50,7 +53,7 @@
                             Abrir PDF Online
                         </a>
 
-                        <!-- ⬇️ DOWNLOAD FORÇADO -->
+                        <!-- ⬇️ DOWNLOAD -->
                         <a href="{{ url_for('download_file', filename=pdf.name) }}" class="download-button">
                             Download PDF
                         </a>
@@ -78,8 +81,10 @@
             let items = document.getElementsByClassName('pdf-item');
 
             for (let i = 0; i < items.length; i++) {
-                let text = items[i].getElementsByTagName('p')[0];
-                let value = text.textContent || text.innerText;
+                let text = items[i].querySelector('.pdf_title p');
+
+                // 🔥 usa nome original (melhor busca)
+                let value = text.getAttribute('data-name');
 
                 items[i].style.display = value.toUpperCase().includes(filter) ? "" : "none";
             }
