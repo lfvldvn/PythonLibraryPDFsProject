@@ -32,7 +32,7 @@
             {% for pdf in pdfs %}
                 <div class="pdf-item">
 
-                    <!-- 🖼️ THUMB CORRETO COM FALLBACK -->
+                    <!-- 🖼️ THUMB COM FALLBACK -->
                     <img
                         src="{{ pdf.thumbnail }}"
                         alt="{{ pdf.name }}"
@@ -45,15 +45,18 @@
 
                     <div class="pdf-actions">
 
+                        <!-- 📖 ABRIR -->
                         <a href="{{ pdf.url }}" target="_blank" class="open-button">
                             Abrir PDF Online
                         </a>
 
-                        <a href="{{ pdf.url }}" class="download-button" download>
+                        <!-- ⬇️ DOWNLOAD FORÇADO -->
+                        <a href="{{ url_for('download_file', filename=pdf.name) }}" class="download-button">
                             Download PDF
                         </a>
 
                         {% if logged_in %}
+                        <!-- ❌ DELETE -->
                         <a href="{{ url_for('delete_file', filename=pdf.name) }}"
                            class="delete-button"
                            onclick="return confirm('Tem certeza que deseja excluir este PDF?')">
