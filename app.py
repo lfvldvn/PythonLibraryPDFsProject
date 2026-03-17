@@ -1,5 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, session, flash, request
+from flask import Flask, render_template, redirect, url_for, session, flash, request, Response
 import os
+import requests
 from werkzeug.security import check_password_hash, generate_password_hash
 from urllib.parse import quote
 
@@ -11,7 +12,7 @@ DEFAULT_THUMB = "https://via.placeholder.com/150x220?text=PDF"
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
 
-# 🔐 senha admin
+# 🔐 senha admin (⚠️ depois vamos mover pra ENV)
 admin_password = generate_password_hash('1Q@Z0OkM*')
 
 
@@ -63,16 +64,15 @@ def get_pdf_files():
     ]
 
 
-# 🔗 URL DO PDF (ENCODE)
+# 🔗 URL DO PDF
 def get_pdf_url(filename):
     return f"{PDF_BASE_URL}{quote(filename)}"
 
 
-# 🖼️ URL DO THUMB (COM FALLBACK)
+# 🖼️ URL DO THUMB
 def get_thumbnail_url(filename):
     name = os.path.splitext(filename)[0]
-    encoded_name = quote(name)
-    return f"{THUMBNAIL_BASE_URL}{encoded_name}.png"
+    return f"{THUMBNAIL_BASE_URL}{quote(name)}.png"
 
 
 # 🏠 HOME
@@ -122,6 +122,27 @@ def logout():
     return redirect(url_for('index'))
 
 
+# 🔥 DOWNLOAD FORÇADO (STREAM)
+@app.route('/download/<path:filename>')
+def download_file(filename):
+    pdf_url = get_pdf_url(filename)
+
+    r = requests.get(pdf_url, stream=True)
+
+    def generate():
+        for chunk in r.iter_content(chunk_size=8192):
+            if chunk:
+                yield chunk
+
+    return Response(
+        generate(),
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        },
+        content_type='application/pdf'
+    )
+
+
 # ❌ DELETE (SIMBÓLICO)
 @app.route('/delete/<path:filename>')
 def delete_file(filename):
@@ -133,6 +154,6 @@ def delete_file(filename):
     return redirect(url_for('index'))
 
 
-# 🚀 RUN (RENDER)
+# 🚀 RUN
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
