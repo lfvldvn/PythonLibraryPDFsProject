@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,8 +12,11 @@
         <h1>Busque pela sua próxima leitura!</h1>
         <input type="text" id="searchInput" placeholder="Buscar PDFs" onkeyup="searchPDFs()">
     </div>
+
     <button id="alt_theme" onclick="toggleTheme()">Alternar Tema</button>
+
     <div class="container">
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">
@@ -24,54 +27,68 @@
             {% endif %}
         {% endwith %}
 
-        <h1><br></h1>
         <div class="pdf-container">
-            {% for pdf_file in pdf_files %}
+
+            {% for pdf in pdfs %}
                 <div class="pdf-item">
-                    <img src="{{ url_for('static', filename='thumbnails/' + os.path.splitext(pdf_file)[0] + '.png') }}" alt="{{ pdf_file }}">
+
+                    <!-- 🖼️ THUMB COM FALLBACK -->
+                    <img
+                        src="{{ pdf.thumbnail }}"
+                        alt="{{ pdf.name }}"
+                        onerror="this.onerror=null;this.src='{{ default_thumb }}';"
+                    >
+
                     <div class="pdf_title">
-                        <p>{{ pdf_file }}</p>
+                        <p>{{ pdf.name }}</p>
                     </div>
-                    <br>
 
                     <div class="pdf-actions">
-                        <a href="{{ url_for('view_pdf', filename=pdf_file) }}" target="_blank" class="open-button">Abrir PDF Online</a>
-                        <a href="{{ url_for('download_file', filename=pdf_file) }}" class="download-button" download>Download PDF</a>
+
+                        <!-- 📖 ABRIR -->
+                        <a href="{{ pdf.url }}" target="_blank" class="open-button">
+                            Abrir PDF Online
+                        </a>
+
+                        <!-- ⬇️ DOWNLOAD FORÇADO -->
+                        <a href="{{ url_for('download_file', filename=pdf.name) }}" class="download-button">
+                            Download PDF
+                        </a>
+
                         {% if logged_in %}
-                        <form action="{{ url_for('delete_file', filename=pdf_file) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este PDF?')">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                            <button type="submit" class="delete-button">Excluir PDF</button>
-                        </form>
+                        <!-- ❌ DELETE -->
+                        <a href="{{ url_for('delete_file', filename=pdf.name) }}"
+                           class="delete-button"
+                           onclick="return confirm('Tem certeza que deseja excluir este PDF?')">
+                            Excluir PDF
+                        </a>
                         {% endif %}
+
                     </div>
                 </div>
             {% endfor %}
+
         </div>
     </div>
 
     <script>
         function searchPDFs() {
-            var input, filter, pdfContainer, pdfItems, a, txtValue;
-            input = document.getElementById('searchInput');
-            filter = input.value.toUpperCase();
-            pdfContainer = document.querySelector('.pdf-container');
-            pdfItems = pdfContainer.getElementsByClassName('pdf-item');
+            let input = document.getElementById('searchInput');
+            let filter = input.value.toUpperCase();
+            let items = document.getElementsByClassName('pdf-item');
 
-            for (var i = 0; i < pdfItems.length; i++) {
-                a = pdfItems[i].getElementsByTagName('p')[0];
-                txtValue = a.textContent || a.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    pdfItems[i].style.display = '';
-                } else {
-                    pdfItems[i].style.display = 'none';
-                }
+            for (let i = 0; i < items.length; i++) {
+                let text = items[i].getElementsByTagName('p')[0];
+                let value = text.textContent || text.innerText;
+
+                items[i].style.display = value.toUpperCase().includes(filter) ? "" : "none";
             }
         }
 
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
         }
-
     </script>
+
 </body>
 </html>
