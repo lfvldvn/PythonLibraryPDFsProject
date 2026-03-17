@@ -36,6 +36,7 @@
                     <img
                         src="{{ pdf.thumbnail }}"
                         alt="{{ pdf.name }}"
+                        loading="lazy"
                         onerror="this.onerror=null;this.src='{{ default_thumb }}';"
                     >
 
@@ -50,7 +51,7 @@
                             Abrir PDF Online
                         </a>
 
-                        <!-- ⬇️ DOWNLOAD FORÇADO -->
+                        <!-- ⬇️ DOWNLOAD -->
                         <a href="{{ url_for('download_file', filename=pdf.name) }}" class="download-button">
                             Download PDF
                         </a>
